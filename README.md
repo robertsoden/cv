@@ -118,12 +118,18 @@ python scripts/parse_cv.py <path_to_cv.docx>
 python scripts/parse_cv.py source_cv/my_cv.docx
 ```
 
-### fetch_scholar.py
+### fetch_scholar.py & fetch_scholar_simple.py
 
 Fetch publication data from Google Scholar.
 
+**IMPORTANT**: Google Scholar actively blocks automated scraping. Both fetcher scripts may encounter 403 Forbidden errors. If this happens, use the manual workaround below.
+
 ```bash
+# Try the full scholarly package version
 python scripts/fetch_scholar.py <scholar_id> [max_publications]
+
+# Or try the simpler web scraping version
+python scripts/fetch_scholar_simple.py <scholar_id> [max_publications]
 ```
 
 **Arguments**:
@@ -138,17 +144,28 @@ python scripts/fetch_scholar.py <scholar_id> [max_publications]
 
 **Example**:
 ```bash
-# Fetch all publications
-python scripts/fetch_scholar.py 1vePPCkAAAAJ
-
-# Fetch only the first 20 publications (faster)
-python scripts/fetch_scholar.py 1vePPCkAAAAJ 20
+python scripts/fetch_scholar_simple.py 1vePPCkAAAAJ 20
 ```
 
-**Note**: Google Scholar may rate-limit requests. If you have many publications, consider:
-- Fetching a limited number first to test
-- Adding delays between requests (already built-in)
-- Using a proxy (uncomment in the code)
+#### Workaround for Google Scholar Blocking
+
+If Google Scholar blocks automated access, use the manual data entry script:
+
+```bash
+python scripts/create_manual_scholar_data.py
+```
+
+This will:
+1. Extract publications from your parsed CV data
+2. Create `data/publications.json` with placeholder citation counts
+3. You can then manually edit this file to add citation metrics from your Google Scholar profile
+
+To get your metrics manually:
+1. Visit your Google Scholar profile
+2. Note your total citations, h-index, and i10-index
+3. Edit `data/publications.json` and update the `author_info` section
+4. Optionally, add citation counts for individual publications
+5. Run `python scripts/generate_cv.py` to regenerate CVs with the updated data
 
 ### generate_cv.py
 
