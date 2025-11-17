@@ -16,16 +16,19 @@ class CVGenerator:
     """Generator for creating CV documents from templates and data."""
 
     def __init__(self, cv_data_path: str = 'data/cv_data.json',
-                 publications_path: str = 'data/publications.json'):
+                 publications_path: str = 'data/publications.json',
+                 include_citations: bool = False):
         """
         Initialize the CV generator.
 
         Args:
             cv_data_path: Path to parsed CV data JSON
             publications_path: Path to Google Scholar publications JSON
+            include_citations: Whether to include citation counts (default: False)
         """
         self.cv_data = self._load_json(cv_data_path)
         self.publications_data = self._load_json(publications_path)
+        self.include_citations = include_citations
 
     def _load_json(self, path: str) -> Dict:
         """Load JSON data from file."""
@@ -145,8 +148,8 @@ class CVGenerator:
 
                 pub_para.add_run(citation_text)
 
-                # Add citation count
-                if citations > 0:
+                # Add citation count (only if enabled)
+                if self.include_citations and citations > 0:
                     cite_run = pub_para.add_run(f" [Cited by {citations}]")
                     cite_run.font.italic = True
                     cite_run.font.color.rgb = RGBColor(100, 100, 100)
@@ -241,7 +244,7 @@ class CVGenerator:
 
                 pub_para.add_run(citation_text)
 
-                if citations > 0:
+                if self.include_citations and citations > 0:
                     cite_run = pub_para.add_run(f" [{citations} citations]")
                     cite_run.font.italic = True
 
@@ -311,11 +314,19 @@ def main():
     """Main function to generate CVs."""
     import sys
 
+    # Parse command line arguments
+    include_citations = '--include-citations' in sys.argv or '-c' in sys.argv
+
     print("=" * 60)
     print("Academic CV Generator")
     print("=" * 60)
+    if include_citations:
+        print("Citation counts: ENABLED")
+    else:
+        print("Citation counts: DISABLED (use --include-citations to enable)")
+    print("=" * 60)
 
-    generator = CVGenerator()
+    generator = CVGenerator(include_citations=include_citations)
 
     # Check if data files exist
     if not generator.cv_data and not generator.publications_data:

@@ -6,30 +6,34 @@ A collection of Python scripts to help manage your academic CV by parsing existi
 
 - **Parse existing CV**: Extract structured data from Word document CVs
 - **Google Scholar integration**: Fetch publications, citations, and metrics (with manual import option)
+- **Incremental updates**: Only import new publications, avoid duplicates automatically
 - **Publication comparison**: Compare CV vs Google Scholar to find gaps and discrepancies
 - **Multiple output formats**: Generate full CV, short CV, and publication lists
-- **Up-to-date metrics**: Include current citation counts, h-index, and i10-index
+- **Citation counts**: Optional (disabled by default to reduce clutter)
 - **Automated workflow**: Single command to update everything
+- **Automatic backups**: Creates timestamped backups before merging data
 
 ## Project Structure
 
 ```
 cv/
 ├── scripts/
-│   ├── parse_cv.py                  # Parse Word document CV
-│   ├── fetch_scholar.py             # Fetch Google Scholar data (scholarly pkg)
-│   ├── fetch_scholar_simple.py      # Simple Google Scholar scraper
-│   ├── import_scholar_manual.py     # Manually import Scholar data
-│   ├── compare_publications.py      # Compare CV vs Google Scholar
+│   ├── parse_cv.py                   # Parse Word document CV
+│   ├── fetch_scholar.py              # Fetch Google Scholar data (scholarly pkg)
+│   ├── fetch_scholar_simple.py       # Simple Google Scholar scraper
+│   ├── import_scholar_manual.py      # Manually import Scholar data
+│   ├── update_incremental.py         # Incrementally add new publications
+│   ├── compare_publications.py       # Compare CV vs Google Scholar
 │   ├── create_manual_scholar_data.py # Create Scholar data from CV
-│   ├── generate_cv.py               # Generate CV documents
-│   └── update_all.py                # Update everything at once
-├── source_cv/               # Place your original CV here
-├── data/                    # Extracted data (JSON)
-├── output/                  # Generated CV documents
-├── requirements.txt         # Python dependencies
-├── README.md                # This file
-└── COMPARISON_GUIDE.md      # Detailed comparison guide
+│   ├── generate_cv.py                # Generate CV documents
+│   └── update_all.py                 # Update everything at once
+├── source_cv/                # Place your original CV here
+├── data/                     # Extracted data (JSON)
+├── output/                   # Generated CV documents
+├── requirements.txt          # Python dependencies
+├── README.md                 # This file
+├── COMPARISON_GUIDE.md       # Publication comparison guide
+└── INCREMENTAL_UPDATE_GUIDE.md # Incremental updates guide
 ```
 
 ## Installation
@@ -177,7 +181,11 @@ To get your metrics manually:
 Generate CV documents from the extracted data.
 
 ```bash
+# Generate CV WITHOUT citation counts (default, recommended)
 python scripts/generate_cv.py
+
+# Generate CV WITH citation counts (optional)
+python scripts/generate_cv.py --include-citations
 ```
 
 **What it generates**:
@@ -186,10 +194,16 @@ python scripts/generate_cv.py
 - `output/publications_list.txt`: Plain text list of publications
 
 **Features**:
-- Includes Google Scholar metrics (citations, h-index, i10-index)
-- Shows citation counts for each publication
+- Includes Google Scholar metrics in header (total citations, h-index, i10-index)
+- Citation counts for individual publications: **disabled by default**
 - Professional formatting
 - Automatically sorted publications
+
+**Why citations are disabled by default**:
+- Citation counts change frequently and become outdated
+- They can clutter the CV
+- Focus should be on the work itself, not metrics
+- Enable with `--include-citations` if needed for specific applications
 
 ### update_all.py
 
@@ -281,6 +295,73 @@ Author1, Author2
 Venue Name, 2024
 Cited by 42
 ```
+
+### update_incremental.py
+
+**NEW**: Incrementally add new publications without re-importing everything!
+
+```bash
+# 1. Import new publications in incremental mode
+python scripts/import_scholar_manual.py scholar_new.txt --incremental
+
+# 2. Merge into existing database
+python scripts/update_incremental.py data/publications_new.json
+```
+
+**What it does**:
+- Compares new publications against existing database
+- Identifies truly new publications (not duplicates)
+- Detects duplicates using fuzzy matching (>85% similarity)
+- Flags potential duplicates for manual review (65-85% similarity)
+- Creates timestamped backup before merging
+- Only adds publications that don't already exist
+
+**Why use incremental updates**:
+- **Save time**: Only process new publications
+- **Avoid duplicates**: Automatic detection
+- **Preserve edits**: Keeps your manual customizations
+- **Stay organized**: Track what's new each quarter/year
+
+**Workflow example**:
+```bash
+# Every 3 months, copy recent publications from Google Scholar
+# Save to scholar_q1_2025.txt (only new pubs!)
+
+# Import incrementally
+python scripts/import_scholar_manual.py scholar_q1_2025.txt --incremental
+
+# Review and merge
+python scripts/update_incremental.py data/publications_new.json
+
+# The script shows:
+# - Truly new: 8
+# - Duplicates (skipped): 2
+# - Potential duplicates: 1
+
+# Confirm merge (y/n)
+# Regenerate CV
+python scripts/generate_cv.py
+```
+
+**Output**:
+```
+Existing publications: 108
+New data contains: 11 publications
+
+Truly new: 8
+Duplicates (skipped): 2
+Potential duplicates (review needed): 1
+
+Ready to add 8 new publications.
+Merge? (Y/n): y
+
+Created backup: data/publications.json.backup.20250117_143022
+✓ Publications merged successfully!
+  Total publications: 116
+  New publications added: 8
+```
+
+See [INCREMENTAL_UPDATE_GUIDE.md](INCREMENTAL_UPDATE_GUIDE.md) for detailed instructions and best practices.
 
 ## Configuration
 
