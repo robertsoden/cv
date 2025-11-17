@@ -5,7 +5,8 @@ A collection of Python scripts to help manage your academic CV by parsing existi
 ## Features
 
 - **Parse existing CV**: Extract structured data from Word document CVs
-- **Google Scholar integration**: Automatically fetch publications, citations, and metrics
+- **Google Scholar integration**: Fetch publications, citations, and metrics (with manual import option)
+- **Publication comparison**: Compare CV vs Google Scholar to find gaps and discrepancies
 - **Multiple output formats**: Generate full CV, short CV, and publication lists
 - **Up-to-date metrics**: Include current citation counts, h-index, and i10-index
 - **Automated workflow**: Single command to update everything
@@ -15,16 +16,20 @@ A collection of Python scripts to help manage your academic CV by parsing existi
 ```
 cv/
 ├── scripts/
-│   ├── parse_cv.py          # Parse Word document CV
-│   ├── fetch_scholar.py     # Fetch Google Scholar data
-│   ├── generate_cv.py       # Generate CV documents
-│   └── update_all.py        # Update everything at once
+│   ├── parse_cv.py                  # Parse Word document CV
+│   ├── fetch_scholar.py             # Fetch Google Scholar data (scholarly pkg)
+│   ├── fetch_scholar_simple.py      # Simple Google Scholar scraper
+│   ├── import_scholar_manual.py     # Manually import Scholar data
+│   ├── compare_publications.py      # Compare CV vs Google Scholar
+│   ├── create_manual_scholar_data.py # Create Scholar data from CV
+│   ├── generate_cv.py               # Generate CV documents
+│   └── update_all.py                # Update everything at once
 ├── source_cv/               # Place your original CV here
-├── templates/               # CV templates (future)
 ├── data/                    # Extracted data (JSON)
 ├── output/                  # Generated CV documents
 ├── requirements.txt         # Python dependencies
-└── README.md
+├── README.md                # This file
+└── COMPARISON_GUIDE.md      # Detailed comparison guide
 ```
 
 ## Installation
@@ -205,6 +210,76 @@ python scripts/update_all.py
 
 # Specify custom paths
 python scripts/update_all.py source_cv/my_cv.docx ABC123XYZ
+```
+
+### compare_publications.py
+
+**NEW**: Compare publications between your CV and Google Scholar to find gaps!
+
+```bash
+python scripts/compare_publications.py
+```
+
+**What it does**:
+- Compares publication lists from CV and Google Scholar
+- Identifies publications only in CV (may need to add to Scholar)
+- Identifies publications only in Scholar (may need to add to CV)
+- Finds matched publications with citation counts
+- Detects potential duplicates or formatting differences
+- Generates detailed comparison report
+
+**Output**: Creates `output/publication_comparison.txt` with:
+- Summary statistics
+- Matched publications
+- Potential matches requiring review
+- Publications only in CV
+- Publications only in Google Scholar
+- Recommendations for syncing
+
+**Similarity matching**:
+- Uses fuzzy string matching (85% threshold for definite matches)
+- Compares normalized titles
+- Checks year consistency
+- Flags potential matches (65-85% similarity) for manual review
+
+**Example workflow**:
+```bash
+# 1. Parse your CV
+python scripts/parse_cv.py source_cv/cv.docx
+
+# 2. Import Google Scholar data (manual method)
+python scripts/import_scholar_manual.py scholar_pubs.txt
+
+# 3. Compare
+python scripts/compare_publications.py
+
+# 4. Review report
+cat output/publication_comparison.txt
+```
+
+See [COMPARISON_GUIDE.md](COMPARISON_GUIDE.md) for detailed instructions.
+
+### import_scholar_manual.py
+
+Manually import Google Scholar publications when automated fetching fails.
+
+```bash
+python scripts/import_scholar_manual.py scholar_pubs.txt
+```
+
+**How to use**:
+1. Visit your Google Scholar profile
+2. Copy your publication list to a text file
+3. Run this script to import the data
+4. You'll be prompted for your metrics (citations, h-index, etc.)
+
+**Input format**: Plain text copied from Google Scholar
+
+```
+Title of Paper
+Author1, Author2
+Venue Name, 2024
+Cited by 42
 ```
 
 ## Configuration
